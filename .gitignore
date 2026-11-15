@@ -1,0 +1,25 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Build & packaging artifacts
+build/
+dist/
+*.egg-info/
+
+# Python bytecode & test caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Temporary & local runtime files
+*.tmp
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.log

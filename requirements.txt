@@ -1,0 +1,6 @@
+PySide6-Essentials>=6.7,<6.10
+# Pinned: newer PyMuPDF releases pull in onnxruntime/numpy (hundreds of MB) which a lightweight app does not need.
+PyMuPDF==1.25.5
+pikepdf>=9.0
+Pillow>=10.3
+send2trash>=1.8
