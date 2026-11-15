@@ -246,3 +246,36 @@ def test_ocr_scanned_pdf(samples, out):
     assert os.path.isfile(res_txt.outputs[0]) and len(res_txt.extracted_preview) > 0
 
 
+def test_rust_accel_functions():
+    from core.rust_accel import (
+        fnv1a_64,
+        is_buffer_blank,
+        rgb_to_grayscale_bytes,
+        rust_available,
+        rust_version,
+        scale_rgba_alpha,
+        visual_diff_rgb,
+    )
+
+    assert rust_available() is True
+    assert rust_version() == "1.0.0"
+    assert is_buffer_blank(b"\xff" * 3000)
+    assert not is_buffer_blank(b"\x00" * 3000)
+
+    a = bytes([255, 255, 255, 10, 20, 30])
+    b = bytes([255, 255, 255, 200, 210, 220])
+    diff_buf, changed = visual_diff_rgb(a, b, 2, threshold=18)
+    assert changed == 1 and len(diff_buf) == 6
+    assert diff_buf[3] == 229  # highlighted red pixel
+
+    gray = rgb_to_grayscale_bytes(bytes([255, 255, 255, 0, 0, 0]), 2)
+    assert len(gray) == 2 and gray[0] >= 254 and gray[1] == 0
+
+    rgba = bytes([100, 150, 200, 200])
+    scaled = scale_rgba_alpha(rgba, 1, 0.5)
+    assert 95 <= scaled[3] <= 105
+
+    assert fnv1a_64(b"pdf-master") != fnv1a_64(b"other")
+
+
+

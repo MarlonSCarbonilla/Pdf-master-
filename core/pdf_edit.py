@@ -16,6 +16,7 @@ import fitz
 from PIL import Image
 
 from core.common import JobContext, ProcessingError, ctx_or_default
+from core.rust_accel import scale_rgba_alpha
 from utils.file_utils import atomic_write
 from utils.validators import check_image_file, open_pdf, parse_page_ranges
 
@@ -250,10 +251,9 @@ def add_image_watermark(
     opacity = max(0.05, min(1.0, float(opacity)))
     with Image.open(image_path) as im:
         rgba = im.convert("RGBA")
-        r_ch, g_ch, b_ch, a_ch = rgba.split()
-        a_ch = a_ch.point(lambda p: int(p * opacity))
-        rgba = Image.merge("RGBA", (r_ch, g_ch, b_ch, a_ch))
         img_w, img_h = rgba.size
+        scaled_bytes = scale_rgba_alpha(rgba.tobytes(), img_w * img_h, opacity)
+        rgba = Image.frombytes("RGBA", (img_w, img_h), scaled_bytes)
         buf = io.BytesIO()
         rgba.save(buf, "PNG")
         png_bytes = buf.getvalue()

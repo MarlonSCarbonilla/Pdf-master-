@@ -557,14 +557,16 @@ class AboutPage(QWidget):
         n = QLabel(f"{APP_NAME} {APP_VERSION}"); n.setObjectName("h1")
         cv.addWidget(n)
         import fitz
+        from core.rust_accel import rust_available, rust_version
         try:
             import PySide6
             qt = PySide6.__version__
         except Exception:
             qt = "?"
+        rust_tag = f"Rust Native Engine v{rust_version()} (Active)" if rust_available() else "Rust Bridge (Fallback)"
         txt = QLabel("A fast, lightweight PDF toolkit that works 100% offline.\n"
                      "No account, no cloud services, no telemetry. Your originals are never modified.\n\n"
-                     f"PyMuPDF {fitz.__version__}  ·  PySide6 {qt}  ·  Pillow  ·  pikepdf\n"
+                     f"PyMuPDF {fitz.__version__}  ·  PySide6 {qt}  ·  {rust_tag}  ·  SQLite3  ·  Pillow  ·  pikepdf\n"
                      "PyMuPDF is licensed under AGPL-3.0; see README for licence notes.")
         txt.setWordWrap(True)
         cv.addWidget(txt)

@@ -4,6 +4,16 @@ $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
 $py = if (Test-Path ".\.venv\Scripts\python.exe") { ".\.venv\Scripts\python.exe" } else { "python" }
 
+$cargo = if (Get-Command cargo -ErrorAction SilentlyContinue) { "cargo" } elseif (Test-Path "C:\Program Files\Rust stable GNU 1.100\bin\cargo.exe") { "C:\Program Files\Rust stable GNU 1.100\bin\cargo.exe" } else { $null }
+if ($cargo -and (Test-Path "rust_accel\Cargo.toml")) {
+    Write-Host "Building native Rust PDF accelerator (rust_accel)..."
+    & $cargo build --release --manifest-path rust_accel\Cargo.toml
+    if ($LASTEXITCODE -eq 0 -and (Test-Path "rust_accel\target\release\pdf_rust_accel.dll")) {
+        Copy-Item "rust_accel\target\release\pdf_rust_accel.dll" "core\pdf_rust_accel.dll" -Force
+        Write-Host "Copied native DLL to core\pdf_rust_accel.dll"
+    }
+}
+
 & $py tools\generate_app_icon.py
 if (-not $args.Contains("-SkipTests")) {
     & $py -m pytest -q

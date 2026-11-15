@@ -6,6 +6,7 @@ env/
 # Build & packaging artifacts
 build/
 dist/
+rust_accel/target/
 *.egg-info/
 
 # Python bytecode & test caches

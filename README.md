@@ -3,6 +3,7 @@
 A fast, lightweight, fully offline Windows desktop PDF application built with **Python 3.12**, **PySide6 (Qt Widgets)**, **PyMuPDF (fitz)**, **pikepdf**, and **Pillow**.
 
 - **100% Offline** – No account, no cloud services, no API keys, no telemetry.
+- **Native Rust PDF Acceleration (`pdf_rust_accel.dll`)** – Compiled Rust `cdylib` crate (`rust_accel/`) loaded via `ctypes` (`core/rust_accel.py`) accelerates pixel-level blank page detection, single-pass visual PDF comparison diffing, ITU-R BT.601 grayscale conversion, RGBA watermark alpha scaling, and 64-bit FNV-1a fingerprinting.
 - **SQLite File & Operation History** – Local `history.db` database (`%APPDATA%\PDFMaster\history.db`) tracks opened and generated files, page counts, file sizes, tool actions, timestamps, and open counts with instant search & action filtering on the **Recent Files** screen.
 - **Non-Destructive** – Original files are preserved by default; all writes are atomic via temporary files.
 - **Lightweight** – Page-by-page streaming, 64 MB bounded LRU thumbnail cache, lazy page loading, and background `QThread` workers with progress & cancellation.

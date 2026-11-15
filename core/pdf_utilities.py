@@ -20,6 +20,7 @@ import fitz
 from PIL import Image, ImageChops, ImageStat
 
 from core.common import JobContext, ProcessingError, ctx_or_default
+from core.rust_accel import is_buffer_blank, rgb_to_grayscale_bytes, visual_diff_rgb
 from utils.file_utils import atomic_write, safe_filename, unique_path
 from utils.validators import has_pdf_header, open_pdf, parse_page_ranges
 
@@ -90,18 +91,11 @@ def repair_pdf(
 # 2. Remove Blank Pages
 # ---------------------------------------------------------------------------
 def _is_page_blank(page: fitz.Page, threshold: float = 0.998) -> bool:
-    """Return True if a page has no text and renders as almost pure white."""
+    """Return True if a page has no text and renders as almost pure white (Rust-accelerated)."""
     if page.get_text("text").strip():
         return False
     pix = page.get_pixmap(matrix=fitz.Matrix(0.5, 0.5), colorspace=fitz.csGRAY, alpha=False)
-    img = Image.frombytes("L", (pix.width, pix.height), pix.samples)
-    try:
-        stat = ImageStat.Stat(img)
-        mean_val = stat.mean[0] / 255.0
-        stddev = stat.stddev[0] / 255.0
-        return mean_val >= threshold and stddev < 0.015
-    finally:
-        img.close()
+    return is_buffer_blank(pix.samples, white_threshold=245, max_dark_ratio=max(0.0005, 1.0 - threshold))
 
 
 def remove_blank_pages(
@@ -220,7 +214,10 @@ def convert_to_grayscale(
                         if not ex or ex.get("colorspace") == 1:
                             continue
                         with Image.open(io.BytesIO(ex["image"])) as im:
-                            gray = im.convert("L")
+                            rgb_im = im.convert("RGB")
+                            w, h = rgb_im.size
+                            gray_bytes = rgb_to_grayscale_bytes(rgb_im.tobytes(), w * h)
+                            gray = Image.frombytes("L", (w, h), gray_bytes)
                             buf = io.BytesIO()
                             gray.save(buf, "PNG")
                         page.replace_image(xref, stream=buf.getvalue())
@@ -421,16 +418,17 @@ def compare_pdfs(
                     im_b_resized = im_b.resize(im_a.size, Image.LANCZOS)
                 else:
                     im_b_resized = im_b
-                delta = ImageChops.difference(im_a, im_b_resized).convert("L")
-                mean_diff = ImageStat.Stat(delta).mean[0]
-                is_vdiff = mean_diff > 0.35 or im_a.size != im_b.size
+                pixel_count = im_a.width * im_a.height
+                diff_bytes, changed_px = visual_diff_rgb(
+                    im_a.tobytes(),
+                    im_b_resized.tobytes(),
+                    pixel_count,
+                    threshold=18,
+                )
+                is_vdiff = (changed_px / max(1, pixel_count)) > 0.002 or im_a.size != im_b.size
                 if is_vdiff:
                     visual_diffs += 1
-                # Highlight changed pixels in red over a dimmed copy of B
-                mask = delta.point(lambda p: 220 if p > 18 else 0)
-                overlay = im_b_resized.copy()
-                red = Image.new("RGB", overlay.size, (235, 35, 35))
-                overlay.paste(red, mask=mask)
+                overlay = Image.frombytes("RGB", im_a.size, diff_bytes)
 
                 for col_idx, (label, img_obj) in enumerate((("Document A", im_a), ("Document B", im_b), ("Differences (Red)", overlay))):
                     x0 = 28 + col_idx * 265

@@ -9,9 +9,16 @@ EXCLUDES = [
     "PySide6.QtPdf", "PySide6.QtTest", "PySide6.QtBluetooth", "PySide6.QtCharts",
 ]
 
+import os
+
+_BINARIES = []
+if os.path.isfile("core/pdf_rust_accel.dll"):
+    _BINARIES.append(("core/pdf_rust_accel.dll", "core"))
+
 a = Analysis(
     ["main.py"],
     pathex=["."],
+    binaries=_BINARIES,
     datas=[
         ("resources/icons/app.ico", "resources/icons"),
         ("resources/icons/app.png", "resources/icons"),
@@ -23,7 +30,7 @@ a = Analysis(
         "ui.compress_page", "ui.viewer_page", "ui.dashboard",
         "ui.edit_page", "ui.security_page", "ui.utilities_page", "ui.ocr_page",
         "ui.components.page_canvas",
-        "core.history_db", "sqlite3",
+        "core.history_db", "core.rust_accel", "sqlite3",
         "core.pdf_edit", "core.pdf_security", "core.pdf_utilities",
         "core.ocr_engine", "core.office_convert",
         "docx", "openpyxl", "pptx", "pytesseract",
