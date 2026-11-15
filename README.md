@@ -78,4 +78,7 @@ powershell -ExecutionPolicy Bypass -File build.ps1
 ```
 
 - **Standalone App**: `dist\PDFMaster\PDFMaster.exe` (no Python installation required on target Windows 10/11 machines).
-- **Windows GUI Setup Installer**: `dist\PDFMaster-Setup.exe` (and `build\installer\PDFMaster-Setup.exe`), built 100% offline via `tools/build_installer.py` using the Windows .NET compiler (`csc.exe`). Includes an interactive Setup Wizard, custom destination directory, Desktop & Start Menu shortcuts, Windows "Installed Apps" registration, and `Uninstall.exe`.
+- **Dedicated Setup & Installer Folder (`installer\`)**:
+  - `installer\PDFMaster-Setup.exe` – Full Windows GUI Setup Installer (built 100% offline via `tools/build_installer.py` using the Windows .NET compiler `csc.exe`).
+  - `installer\Uninstall.exe` – Standalone uninstaller utility.
+  - `installer\installer.iss` & `installer\README-INSTALLER.txt` – Installer configuration and quick-start instructions.

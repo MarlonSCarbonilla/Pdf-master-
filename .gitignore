@@ -6,6 +6,7 @@ env/
 # Build & packaging artifacts
 build/
 dist/
+installer/*.exe
 rust_accel/target/
 *.egg-info/
 

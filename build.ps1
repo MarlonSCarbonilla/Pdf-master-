@@ -25,4 +25,4 @@ Write-Host "Built standalone app: dist\PDFMaster\PDFMaster.exe"
 
 & $py tools\build_installer.py
 if ($LASTEXITCODE -ne 0) { throw "Installer build failed." }
-Write-Host "Built setup installer: dist\PDFMaster-Setup.exe"
+Write-Host "Built setup installer: installer\PDFMaster-Setup.exe"

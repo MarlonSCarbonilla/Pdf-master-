@@ -572,17 +572,17 @@ def build_installer() -> str:
     with open(setup_cs, "w", encoding="utf-8") as f:
         f.write(SETUP_CS)
 
-    out_installer_dir = os.path.join(root, "build", "installer")
+    out_installer_dir = os.path.join(root, "installer")
     os.makedirs(out_installer_dir, exist_ok=True)
+    setup_exe_installer = os.path.join(out_installer_dir, "PDFMaster-Setup.exe")
     setup_exe_dist = os.path.join(root, "dist", "PDFMaster-Setup.exe")
-    setup_exe_build = os.path.join(out_installer_dir, "PDFMaster-Setup.exe")
 
     cmd_setup = [
         csc,
         "/nologo",
         "/target:winexe",
         "/optimize+",
-        f"/out:{setup_exe_dist}",
+        f"/out:{setup_exe_installer}",
         f"/win32icon:{ico_path}",
         f"/resource:{payload_zip},PDFMaster.payload.zip",
         "/r:System.dll",
@@ -594,11 +594,13 @@ def build_installer() -> str:
         setup_cs,
     ]
     subprocess.run(cmd_setup, check=True)
-    shutil.copy2(setup_exe_dist, setup_exe_build)
-    size_mb = os.path.getsize(setup_exe_dist) / (1024 * 1024)
-    print(f"Built installer: {setup_exe_dist} ({size_mb:.1f} MB)")
-    print(f"Copied to:       {setup_exe_build}")
-    return setup_exe_dist
+    shutil.copy2(setup_exe_installer, setup_exe_dist)
+    shutil.copy2(uninst_exe, os.path.join(out_installer_dir, "Uninstall.exe"))
+    if os.path.isfile(os.path.join(root, "installer.iss")):
+        shutil.copy2(os.path.join(root, "installer.iss"), os.path.join(out_installer_dir, "installer.iss"))
+    size_mb = os.path.getsize(setup_exe_installer) / (1024 * 1024)
+    print(f"Built installer: {setup_exe_installer} ({size_mb:.1f} MB)")
+    return setup_exe_installer
 
 
 if __name__ == "__main__":
